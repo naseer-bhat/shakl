@@ -22,7 +22,7 @@ function UploadPage() {
     <div className="grid grid-cols-1 md:grid-cols-2 h-screen w-full">
       <div className="h-full gap-6 w-full bg-gradient-to-b from-[#00c6ff] to-[#0072ff] flex flex-col justify-center items-start text-white p-8">
         <div className="text-7xl font-thin uppercase tracking-wide">Shakl</div>
-        <div className="text-6xl leading-[70px] w-fit font-extrabold tracking-wide">
+        <div className="text-4xl md:text-6xl md:leading-[70px] w-fit font-extrabold tracking-wide">
           crop, resize, compress your images with ease!
         </div>
         <div className="text-lg">Upload your image to get started.</div>
