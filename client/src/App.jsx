@@ -6,6 +6,7 @@ import ResizeControls from "./components/ResizeControls";
 import CopiesManager from "./components/CopiesManager";
 import PreviewPanel from "./components/PreviewPanel";
 import { handlePrint } from "./utils/printHelper";
+import CompressionControls from "./components/CompressionControls";
 
 const PPI = 96;
 
@@ -88,6 +89,13 @@ function App() {
               handlePrint={handlePrint}
             />
           )}
+          {(resizedImage || croppedImage || imageSrc) && (
+  <CompressionControls
+    image={resizedImage || croppedImage || imageSrc}
+    onCompressed={(newImg) => setResizedImage(newImg)}
+  />
+)}
+
         </div>
       </div>
     </div>

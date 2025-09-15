@@ -1,10 +1,70 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
-function ImageCropper({ imageSrc, setCroppedImage, setResizedImage, setPreviewResizedImage, setWidthCm, setHeightCm, canvasRef, imageRef, PPI }) {
+function ImageCropper({
+  imageSrc,
+  setCroppedImage,
+  setResizedImage,
+  setPreviewResizedImage,
+  setWidthCm,
+  setHeightCm,
+  canvasRef,
+  imageRef,
+  PPI,
+}) {
   const [cropRect, setCropRect] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const startRef = useRef({ x: 0, y: 0 });
 
+  // 📌 Draw crop rectangle with spotlight effect
+  const drawCropRect = (rect) => {
+    if (!canvasRef.current || !imageRef.current) return;
+    const ctx = canvasRef.current.getContext("2d");
+    const canvas = canvasRef.current;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Dim entire canvas
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Clear crop area (spotlight)
+    ctx.clearRect(rect.x, rect.y, rect.width, rect.height);
+
+    // Draw border
+    ctx.strokeStyle = "#ff4d4d";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
+  };
+
+  // 📌 Default passport crop (3.5 × 4.5 cm)
+  useEffect(() => {
+    if (imageRef.current && canvasRef.current) {
+      const img = imageRef.current;
+
+      const displayWidth = img.clientWidth;
+      const displayHeight = img.clientHeight;
+
+      const widthPx = (3.5 / 2.54) * PPI * (displayWidth / img.naturalWidth);
+      const heightPx = (4.5 / 2.54) * PPI * (displayHeight / img.naturalHeight);
+
+      // Center crop box
+      const defaultX = (displayWidth - widthPx) / 2;
+      const defaultY = (displayHeight - heightPx) / 2;
+
+      const defaultRect = {
+        x: defaultX,
+        y: defaultY,
+        width: widthPx,
+        height: heightPx,
+      };
+
+      setCropRect(defaultRect);
+      drawCropRect(defaultRect);
+    }
+  }, [imageSrc, PPI]);
+
+  // 📌 Mouse events
   const startDrag = (e) => {
     if (!canvasRef.current) return;
     const rect = canvasRef.current.getBoundingClientRect();
@@ -28,23 +88,19 @@ function ImageCropper({ imageSrc, setCroppedImage, setResizedImage, setPreviewRe
       height: Math.abs(y - startRef.current.y),
     };
     setCropRect(newRect);
-
-    const ctx = canvasRef.current.getContext("2d");
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    ctx.strokeStyle = "#ff4d4d";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(newRect.x, newRect.y, newRect.width, newRect.height);
+    drawCropRect(newRect);
   };
 
   const endDrag = () => setIsDragging(false);
 
+  // 📌 Crop function
   const cropImage = () => {
     if (!imageRef.current || !cropRect) return;
     const img = imageRef.current;
-    const displayWidth = img.width;
-    const displayHeight = img.height;
-    const scaleX = img.naturalWidth / displayWidth;
-    const scaleY = img.naturalHeight / displayHeight;
+
+    // Scale factors
+    const scaleX = img.naturalWidth / img.clientWidth;
+    const scaleY = img.naturalHeight / img.clientHeight;
 
     const canvas = document.createElement("canvas");
     const widthPx = cropRect.width * scaleX;
@@ -76,20 +132,37 @@ function ImageCropper({ imageSrc, setCroppedImage, setResizedImage, setPreviewRe
     setHeightCm((heightPx / PPI) * 2.54);
   };
 
+  // 📌 Clear crop
+  const clearCrop = () => {
+    setCropRect(null);
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext("2d");
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    }
+    setCroppedImage(null);
+    setResizedImage(null);
+    setPreviewResizedImage(null);
+  };
+
   return (
     <div className="image-wrapper">
       <div className="fixed-image-container">
         <img
-          src={imageSrc}
-          alt="original"
-          ref={imageRef}
-          onLoad={() => {
-            if (canvasRef.current && imageRef.current) {
-              canvasRef.current.width = imageRef.current.naturalWidth;
-              canvasRef.current.height = imageRef.current.naturalHeight;
-            }
-          }}
-        />
+  src={imageSrc}
+  alt="original"
+  ref={imageRef}
+  onLoad={() => {
+    if (canvasRef.current && imageRef.current) {
+      const container = canvasRef.current.parentElement;
+
+      // Match canvas to container size
+      canvasRef.current.width = container.clientWidth;
+      canvasRef.current.height = container.clientHeight;
+    }
+  }}
+/>
+
+
         <canvas
           ref={canvasRef}
           className="crop-canvas"
@@ -99,7 +172,15 @@ function ImageCropper({ imageSrc, setCroppedImage, setResizedImage, setPreviewRe
           onMouseLeave={endDrag}
         />
       </div>
-      <button className="btn" onClick={cropImage}>Crop Image</button>
+
+      <div className="btn-group">
+        <button className="btn" onClick={cropImage}>
+          Crop Image
+        </button>
+        <button className="btn" onClick={clearCrop}>
+          Clear Crop
+        </button>
+      </div>
     </div>
   );
 }
