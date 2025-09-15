@@ -1,13 +1,31 @@
 import { useState, useEffect } from "react";
 
-function FilterControls({ croppedImage, setCroppedImage, setResizedImage, setPreviewResizedImage, PPI, widthCm, heightCm }) {
-  const [filters, setFilters] = useState({
+function FilterControls({
+  croppedImage,
+  setCroppedImage,
+  setResizedImage,
+  setPreviewResizedImage,
+  PPI,
+  widthCm,
+  heightCm,
+}) {
+  const defaultFilters = {
     brightness: 100,
     contrast: 100,
     saturation: 100,
     grayscale: 0,
-    blur: 0
-  });
+    blur: 0,
+  };
+
+  const [filters, setFilters] = useState(defaultFilters);
+  const [originalImage, setOriginalImage] = useState(null);
+
+  // Save the first unfiltered croppedImage as original
+  useEffect(() => {
+    if (croppedImage && !originalImage) {
+      setOriginalImage(croppedImage);
+    }
+  }, [croppedImage, originalImage]);
 
   // Build CSS filter string
   const filterString = `
@@ -21,10 +39,10 @@ function FilterControls({ croppedImage, setCroppedImage, setResizedImage, setPre
   // Update filter value
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFilters(prev => ({ ...prev, [name]: value }));
+    setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Apply filters permanently to the image
+  // Apply filters permanently
   const applyFilters = () => {
     if (!croppedImage) return;
 
@@ -48,12 +66,32 @@ function FilterControls({ croppedImage, setCroppedImage, setResizedImage, setPre
     };
   };
 
+  // Reset filters and restore original image
+  const resetFilters = () => {
+    setFilters(defaultFilters);
+    if (originalImage) {
+      setCroppedImage(originalImage);
+      setResizedImage(originalImage);
+      setPreviewResizedImage(null);
+    }
+  };
+
   return (
     <div className="compression-section">
+      {croppedImage && (
+        <div className="preview">
+          <h4>Preview</h4>
+          <img
+            src={croppedImage}
+            alt="filtered preview"
+            style={{ filter: filterString }}
+          />
+        </div>
+      )}
       <h3>Filters & Effects</h3>
-      {Object.keys(filters).map(key => (
+      {Object.keys(filters).map((key) => (
         <label key={key}>
-          {key.charAt(0).toUpperCase() + key.slice(1)}: 
+          {key.charAt(0).toUpperCase() + key.slice(1)}:{" "}
           <input
             type="range"
             min={key === "blur" ? 0 : 0}
@@ -67,15 +105,15 @@ function FilterControls({ croppedImage, setCroppedImage, setResizedImage, setPre
       ))}
 
       <div className="btn-group">
-        <button className="btn" onClick={applyFilters}>Apply Filters</button>
+        <button className="btn" onClick={applyFilters}>
+          Apply Filters
+        </button>
+        <button className="btn" onClick={resetFilters}>
+          Reset Filters
+        </button>
       </div>
 
-      {croppedImage && (
-        <div className="preview">
-          <h4>Preview</h4>
-          <img src={croppedImage} alt="filtered preview" style={{ filter: filterString }} />
-        </div>
-      )}
+      
     </div>
   );
 }

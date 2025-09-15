@@ -22,7 +22,23 @@ function ResizeControls({
   previewResizedImage,
   PPI,
 }) {
-  const resizeImage = (apply = false, customWidth = widthCm, customHeight = heightCm) => {
+  const getOriginalSize = () => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = croppedImage || imageSrc;
+      img.onload = () => {
+        const widthCm = (img.naturalWidth / PPI) * 2.54;
+        const heightCm = (img.naturalHeight / PPI) * 2.54;
+        resolve({ width: widthCm.toFixed(2), height: heightCm.toFixed(2) });
+      };
+    });
+  };
+
+  const resizeImage = (
+    apply = false,
+    customWidth = widthCm,
+    customHeight = heightCm
+  ) => {
     if (!croppedImage && !imageSrc) return;
     const img = new Image();
     img.src = croppedImage || imageSrc;
@@ -44,7 +60,7 @@ function ResizeControls({
       if (apply) {
         setCroppedImage(base64);
         setResizedImage(base64);
-        setPreviewResizedImage(base64); // show preview immediately
+        setPreviewResizedImage(base64);
       } else {
         setPreviewResizedImage(base64);
       }
@@ -87,6 +103,23 @@ function ResizeControls({
 
       <div className="preset-sizes">
         <h4>📏 Quick Presets</h4>
+
+        {/* Original Size option */}
+        {imageSrc && (
+          <button
+            className="btn preset-btn"
+            onClick={async () => {
+              const original = await getOriginalSize();
+              setWidthCm(Number(original.width));
+              setHeightCm(Number(original.height));
+              resizeImage(true, original.width, original.height);
+            }}
+          >
+            🖼 Original Size
+          </button>
+        )}
+
+        {/* Other presets */}
         {PRESET_SIZES.map((preset, idx) => (
           <button
             key={idx}
@@ -94,7 +127,7 @@ function ResizeControls({
             onClick={() => {
               setWidthCm(preset.width);
               setHeightCm(preset.height);
-              resizeImage(true, preset.width, preset.height); // auto resize & preview
+              resizeImage(true, preset.width, preset.height);
             }}
           >
             {preset.label}
