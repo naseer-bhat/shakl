@@ -7,11 +7,15 @@ import CopiesManager from "./components/CopiesManager";
 import PreviewPanel from "./components/PreviewPanel";
 import { handlePrint } from "./utils/printHelper";
 import CompressionControls from "./components/CompressionControls";
+import FilterControls from "./components/FilterControls";
 
 const PPI = 96;
 
 function App() {
-  const PAPER_SIZES = { A4: { width: 21, height: 29.7 }, Letter: { width: 21.59, height: 27.94 } };
+  const PAPER_SIZES = {
+    A4: { width: 21, height: 29.7 },
+    Letter: { width: 21.59, height: 27.94 },
+  };
 
   const [imageSrc, setImageSrc] = useState(null);
   const [croppedImage, setCroppedImage] = useState(null);
@@ -73,6 +77,17 @@ function App() {
           )}
 
           <PreviewPanel previewResizedImage={previewResizedImage} />
+          {(croppedImage || resizedImage) && (
+            <FilterControls
+              croppedImage={croppedImage}
+              setCroppedImage={setCroppedImage}
+              setResizedImage={setResizedImage}
+              setPreviewResizedImage={setPreviewResizedImage}
+              PPI={PPI}
+              widthCm={widthCm}
+              heightCm={heightCm}
+            />
+          )}
 
           {(resizedImage || croppedImage) && (
             <CopiesManager
@@ -90,12 +105,11 @@ function App() {
             />
           )}
           {(resizedImage || croppedImage || imageSrc) && (
-  <CompressionControls
-    image={resizedImage || croppedImage || imageSrc}
-    onCompressed={(newImg) => setResizedImage(newImg)}
-  />
-)}
-
+            <CompressionControls
+              image={resizedImage || croppedImage || imageSrc}
+              onCompressed={(newImg) => setResizedImage(newImg)}
+            />
+          )}
         </div>
       </div>
     </div>
