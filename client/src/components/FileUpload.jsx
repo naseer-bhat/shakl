@@ -34,7 +34,7 @@ function FileUpload({ setImageSrc, setWidthCm, setHeightCm, setCroppedImage, set
     <div className="w-full flex flex-col justify-center items-center border-2 border-dashed border-gray-300 rounded-lg p-4">
       <label htmlFor="file-upload" className="cursor-pointer text-center w-full">
         <div>
-          <img src="/src/images/upload-image-svgrepo-com.svg" alt="Upload Icon" className="w-full h-96" />
+          <img src="/images/upload-image-svgrepo-com.svg" alt="Upload Icon" className="w-full h-96" />
         </div>
         <span className="text-lg">{fileName ? fileName : "Upload Image"}</span>
       </label>
