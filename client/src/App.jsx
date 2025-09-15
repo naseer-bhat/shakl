@@ -9,7 +9,7 @@ function App() {
     <ImageEditorProvider>
       <Router>
         <Routes>
-          <Route path="/upload" element={<UploadPage />} />
+          <Route path="/" element={<UploadPage />} />
           <Route path="/editor" element={<EditorPage />} />
           <Route path="*" element={<Navigate to="/upload" />} />
         </Routes>
